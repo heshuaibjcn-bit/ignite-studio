@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1777831191238,
+      "tag": "0000_broad_justice",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1777832200000,
+      "tag": "0001_add_production_type_and_voice_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1777832800000,
+      "tag": "0002_add_agent_configs",
+      "breakpoints": true
+    }
+  ]
+}
