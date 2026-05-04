@@ -21,6 +21,9 @@ export async function register() {
     // Store reference for graceful shutdown
     (globalThis as any).__jobRunner = runner;
 
+    // Resume stale tasks from previous server instance
+    await runner.resumePendingTasks();
+
     runner.start();
     logger.info('JobRunner started via instrumentation.register()');
 

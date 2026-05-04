@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TaskCenterRepository } from '@/db/repositories/task-center.repository';
+import { JobStepItemsRepository } from '@/db/repositories/job-step-items.repository';
 
 /**
  * GET /api/v1/jobs/[id]
- * Returns job detail: job + steps + events + summary.
+ * Returns job detail: job + steps + events + step items (for fan-out) + summary.
  */
 export async function GET(
   _request: NextRequest,
@@ -24,6 +25,10 @@ export async function GET(
 
     const detail = await taskCenter.getJobDetail(id);
 
+    // Fetch step items for fan-out steps
+    const stepItemsRepo = new JobStepItemsRepository();
+    const stepItems = detail ? await stepItemsRepo.listByJobId(id) : [];
+
     return NextResponse.json({
       success: true,
       data: {
@@ -31,6 +36,7 @@ export async function GET(
         summary: summary.summary,
         steps: detail?.steps ?? [],
         events: detail?.events ?? [],
+        stepItems,
       },
       error: null,
     });

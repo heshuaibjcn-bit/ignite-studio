@@ -52,6 +52,52 @@ export class JobRunner {
     }, this.pollIntervalMs);
   }
 
+  /**
+   * Resume pending tasks after a server restart.
+   *
+   * When the server crashes or restarts, in-memory executor state is lost.
+   * Steps that were RUNNING are now stale — no executor is driving them.
+   * This method finds those steps and resets them to QUEUED so the regular
+   * tick cycle picks them up and re-executes.
+   *
+   * Idempotent: safe to call multiple times. Only touches RUNNING steps.
+   */
+  async resumePendingTasks(): Promise<void> {
+    try {
+      const staleSteps = await this.taskCenter.jobStepsRepo.findStaleRunningSteps();
+      if (staleSteps.length === 0) {
+        logger.info('No stale running steps found on startup');
+        return;
+      }
+
+      logger.info({ count: staleSteps.length }, 'Found stale running steps, resetting to QUEUED');
+
+      for (const step of staleSteps) {
+        // Only reset steps whose parent job is still RUNNING
+        const job = await this.taskCenter.jobsRepo.findById(step.jobId);
+        if (!job || job.status !== JOB_STATUS.RUNNING) {
+          // Job already completed/failed/cancelled — mark step as failed
+          logger.info({ stepId: step.id, stepCode: step.stepCode, jobId: step.jobId }, 'Step belongs to non-running job, marking stale');
+          await this.taskCenter.markStepFailed(step.jobId, step.id, 'STALE', 'Job no longer running on server restart');
+          continue;
+        }
+
+        logger.info({
+          stepId: step.id,
+          stepCode: step.stepCode,
+          jobId: step.jobId,
+          executionState: step.executionState,
+        }, 'Resetting stale step to QUEUED');
+
+        await this.taskCenter.jobStepsRepo.resetStepToQueued(step.id);
+      }
+
+      logger.info('Stale step recovery complete');
+    } catch (err) {
+      logger.error({ err }, 'Failed to resume pending tasks');
+    }
+  }
+
   /** Stop polling. */
   stop(): void {
     this.running = false;

@@ -23,6 +23,10 @@ export const characters = sqliteTable('characters', {
   appearancePrompt: text('appearance_prompt'),
   voiceId: text('voice_id'),
   imageAssetId: text('image_asset_id'),
+  /** TTS voice provider (e.g., 'edge', 'minimax', 'openai') */
+  voiceProvider: text('voice_provider'),
+  /** Generated voice sample URL for preview */
+  voiceSampleUrl: text('voice_sample_url'),
   extraPayload: jsonCol('extra_payload'),
   createdAt: createdAtCol(),
   updatedAt: updatedAtCol(),
@@ -92,6 +96,13 @@ export const episodes = sqliteTable('episodes', {
   updatedAt: updatedAtCol(),
 });
 
+export const storyboardCharacters = sqliteTable('storyboard_characters', {
+  storyboardId: text('storyboard_id').notNull(),
+  characterId: text('character_id').notNull(),
+}, (t) => [
+  uniqueIndex('idx_storyboard_characters_pk').on(t.storyboardId, t.characterId),
+]);
+
 export const storyboards = sqliteTable('storyboards', {
   id: idCol(),
   episodeId: text('episode_id').notNull(),
@@ -104,6 +115,20 @@ export const storyboards = sqliteTable('storyboards', {
   durationSec: integer('duration_sec'),
   sceneId: text('scene_id'),
   promptText: text('prompt_text'),
+  /** Camera angle: 平视/仰视/俯视/鸟瞰/斜角 etc. */
+  angle: text('angle'),
+  /** Camera movement: 固定/摇/移/推拉/跟 etc. */
+  movement: text('movement'),
+  /** Atmosphere/mood: 紧张/温馨/忧郁/欢快 etc. */
+  atmosphere: text('atmosphere'),
+  /** Video generation prompt */
+  videoPrompt: text('video_prompt'),
+  /** BGM prompt for composition */
+  bgmPrompt: text('bgm_prompt'),
+  /** Sound effect description */
+  soundEffect: text('sound_effect'),
+  /** TTS-generated audio asset path */
+  ttsAudioAssetId: text('tts_audio_asset_id'),
   selectedImageAssetId: text('selected_image_asset_id'),
   selectedVideoAssetId: text('selected_video_asset_id'),
   composedVideoAssetId: text('composed_video_asset_id'),

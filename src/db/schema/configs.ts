@@ -1,7 +1,7 @@
 /**
  * AI Service Configs, Agent Configs, Voices, and Templates schema.
  */
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { idCol, createdAtCol, updatedAtCol, boolCol, jsonCol } from './common';
 
 export const aiServiceConfigs = sqliteTable('ai_service_configs', {
@@ -26,6 +26,14 @@ export const agentConfigs = sqliteTable('agent_configs', {
   description: text('description'),
   enabled: boolCol('enabled', true),
   modelConfigId: text('model_config_id'),
+  /** LLM model override for this agent (e.g., 'gpt-4o', 'claude-3.5-sonnet') */
+  model: text('model'),
+  /** Temperature for generation (0.0 - 2.0) */
+  temperature: real('temperature'),
+  /** Maximum tokens for generation */
+  maxTokens: integer('max_tokens'),
+  /** Custom system prompt (appended to skill prompt) */
+  systemPrompt: text('system_prompt'),
   promptTemplate: jsonCol('prompt_template'),
   toolConfig: jsonCol('tool_config'),
   extraConfig: jsonCol('extra_config'),

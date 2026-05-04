@@ -13,6 +13,8 @@ export const projects = sqliteTable('projects', {
   status: text('status').notNull().default('active'),
   defaultVoiceId: text('default_voice_id'),
   ownerId: text('owner_id'),
+  /** Production type: narrative_drama | narrated_image | commentary_mix */
+  productionType: text('production_type').notNull().default('narrative_drama'),
   createdAt: createdAtCol(),
   updatedAt: updatedAtCol(),
 });

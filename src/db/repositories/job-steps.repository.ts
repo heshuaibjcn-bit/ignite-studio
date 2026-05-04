@@ -155,4 +155,35 @@ export class JobStepsRepository {
     const rows = await this.db.select().from(jobSteps).where(eq(jobSteps.providerTaskId, providerTaskId)).limit(1);
     return rows[0] ?? null;
   }
+
+  /**
+   * Find steps stuck in RUNNING status — these lost their in-memory executor
+   * when the server restarted. They need to be reset to QUEUED.
+   */
+  async findStaleRunningSteps() {
+    return this.db
+      .select()
+      .from(jobSteps)
+      .where(eq(jobSteps.status, STEP_STATUS.RUNNING));
+  }
+
+  /**
+   * Reset a step back to QUEUED/NORMAL so the JobRunner picks it up again.
+   * Clears provider-specific state from the previous attempt.
+   */
+  async resetStepToQueued(stepId: string) {
+    const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+    await this.db
+      .update(jobSteps)
+      .set({
+        status: STEP_STATUS.QUEUED,
+        executionState: EXECUTION_STATE.NORMAL,
+        providerName: null,
+        providerTaskId: null,
+        startedAt: null,
+        updatedAt: now,
+      })
+      .where(eq(jobSteps.id, stepId));
+    return this.findById(stepId);
+  }
 }
